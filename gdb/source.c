@@ -23,6 +23,7 @@
 #include "language.h"
 #include "command.h"
 #include "source.h"
+#include "source-id.h"
 #include "gdbcmd.h"
 #include "frame.h"
 #include "value.h"
@@ -1101,6 +1102,10 @@ open_source_file (struct symtab *s)
 {
   if (!s)
     return -1;
+
+  printf_unfiltered (_("open_source_file\n"));
+
+  fetch_source (s->objfile->obfd, s->filename);
 
   return find_and_open_source (s->filename, s->dirname, &s->fullname);
 }
