@@ -1515,6 +1515,15 @@ struct elf_build_id
   bfd_byte data[1];
 };
 
+/* NT_GNU_SOURCE_ID note type info for input BFDs. */
+struct elf_source_id
+{
+  char* vcs_type;
+  char* vcs_url;
+  char* vcs_version;
+  char data[1];
+};
+
 /* tdata information grabbed from an elf core file.  */
 struct core_elf_obj_tdata
 {
@@ -1651,6 +1660,9 @@ struct elf_obj_tdata
 
   /* NT_GNU_BUILD_ID note type.  */
   struct elf_build_id *build_id;
+
+  /* NT_GNU_SOURCE_ID note type.  */
+  struct elf_source_id *source_id;
 
   /* Linked-list containing information about every Systemtap section
      found in the object file.  Each section corresponds to one entry

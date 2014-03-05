@@ -8772,6 +8772,30 @@ elfobj_grok_gnu_build_id (bfd *abfd, Elf_Internal_Note *note)
 }
 
 static bfd_boolean
+elfobj_grok_gnu_source_id (bfd *abfd, Elf_Internal_Note *note)
+{
+  struct elf_obj_tdata *t;
+  int len1, len2;
+
+  if (note->descsz == 0)
+    return FALSE;
+
+  t = elf_tdata (abfd);
+  t->source_id = bfd_alloc (abfd, sizeof (*t->source_id) - 1 + note->descsz);
+  if (t->source_id == NULL)
+    return FALSE;
+
+  memcpy (t->source_id->data, note->descdata, note->descsz);
+  t->source_id->vcs_type = t->source_id->data;
+  len1 = strlen(t->source_id->vcs_type);
+  t->source_id->vcs_url  = &t->source_id->data[len1+1];
+  len2 = strlen(t->source_id->vcs_url);
+  t->source_id->vcs_version = &t->source_id->data[len1+len2+2];
+
+  return TRUE;
+}
+
+static bfd_boolean
 elfobj_grok_gnu_note (bfd *abfd, Elf_Internal_Note *note)
 {
   switch (note->type)
@@ -8781,6 +8805,9 @@ elfobj_grok_gnu_note (bfd *abfd, Elf_Internal_Note *note)
 
     case NT_GNU_BUILD_ID:
       return elfobj_grok_gnu_build_id (abfd, note);
+
+    case NT_GNU_SOURCE_ID:
+      return elfobj_grok_gnu_source_id (abfd, note);
     }
 }
 
