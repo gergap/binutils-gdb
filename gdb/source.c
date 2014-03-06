@@ -1202,13 +1202,20 @@ find_source_lines (struct symtab *s, int desc)
   if (fstat (desc, &st) < 0)
     perror_with_name (symtab_to_filename_for_display (s));
 
-  if (s->objfile && s->objfile->obfd)
-    mtime = s->objfile->mtime;
-  else if (exec_bfd)
-    mtime = exec_bfd_mtime;
+  /* only perform file mtime checks when not fetched from
+   * VCS by source-id. We trust a VCS more than a timestamp.
+   * (In the future we should use file hashes for validation.
+   * Therefore we need to add them to the debug info first.) */
+  if (source_lookup == NULL)
+    {
+      if (s->objfile && s->objfile->obfd)
+        mtime = s->objfile->mtime;
+      else if (exec_bfd)
+        mtime = exec_bfd_mtime;
 
-  if (mtime && mtime < st.st_mtime)
-    warning (_("Source file is more recent than executable."));
+      if (mtime && mtime < st.st_mtime)
+        warning (_("Source file is more recent than executable."));
+    }
 
   {
     struct cleanup *old_cleanups;
