@@ -116,7 +116,7 @@ fetch_source (bfd *abfd, const char *filename, char *cachefile, size_t len)
         filehash);
     if (ret >= PATH_MAX)
       {
-        printf_unfiltered("Fetch command was truncated. Aim for shorter path names.\n");
+        warning(_("Fetch command was truncated. Aim for shorter path names.\n"));
         return -1;
       }
 
@@ -139,8 +139,10 @@ fetch_source (bfd *abfd, const char *filename, char *cachefile, size_t len)
 
     if (ret != 0)
       {
-        printf_unfiltered("fetching sources failed: system call result=%i, exitcode=%i\n",
-                          ret, WEXITSTATUS(ret));
+        warning(_("fetching sources failed: \
+invoking source_lookup script '%s' \
+returned result=%i, script exitcode=%i\n"),
+            source_lookup, ret, WEXITSTATUS(ret));
       }
 
     return ret;
