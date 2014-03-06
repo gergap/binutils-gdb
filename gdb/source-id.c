@@ -29,15 +29,27 @@ char *source_lookup = NULL;
 /* Handler for "set source-lookup path" command. */
 
 static void
-set_source_lookup_command (char *args, int from_tty, struct cmd_list_element *c)
+set_source_lookup_command (char *args, int from_tty)
 {
+    if (source_lookup)
+        xfree(source_lookup);
+    source_lookup = xstrdup(args);
+}
+
+/* Handler for "unset source-lookup" command. */
+
+static void
+unset_source_lookup_command (char *args, int from_tty)
+{
+    if (source_lookup)
+        xfree(source_lookup);
+    source_lookup = NULL;
 }
 
 /* Handler for "show source-lookup" command.  */
 
 static void
-show_source_lookup_command (struct ui_file *file, int from_tty,
-			  struct cmd_list_element *c, const char *value)
+show_source_lookup_command (char *args, int from_tty)
 {
   printf_filtered (_("source-lookup: %s\n"), source_lookup);
 }
@@ -46,22 +58,26 @@ show_source_lookup_command (struct ui_file *file, int from_tty,
 void
 _initialize_source_id (void)
 {
-  add_setshow_optional_filename_cmd ("source-lookup",
-				     class_files,
-                     &source_lookup,
-				     _("\
-Set the path for an external fetch_source script."),
-				     _("\
-Show the path for an external fetch_source script."),
-				     _("\
-If this is set GDB calls this script to fetch the correct source file\n\
+  add_cmd ("source-lookup", class_files, set_source_lookup_command,
+    _("\
+Usage: set source-lookup FETCH_SCRIPT\n\
+GDB calls this script to fech the correct source file for the executable\n\
 from a version control system (e.g. git). GDB only calls this script\n\
 if the executable being debugged contains a source-id section with\n\
 version information."),
-			    set_source_lookup_command,
-			    show_source_lookup_command,
-			    &setlist, &showlist);
+    &setlist);
 
+  add_cmd ("source-lookup", class_files, unset_source_lookup_command,
+    _("\
+Usage: unset source-lookup\n\
+Disables source fetching."),
+    &unsetlist);
+
+  add_cmd ("source-lookup", class_files, show_source_lookup_command,
+    _("\
+Usage: show source-lookup\n\
+Shows the currently active source-lookup fetch script."),
+    &showlist);
 }
 
 int
