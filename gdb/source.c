@@ -1100,12 +1100,23 @@ find_and_open_source (const char *filename,
 int
 open_source_file (struct symtab *s)
 {
+  char cachefile[PATH_MAX];
+  int result;
+
   if (!s)
     return -1;
 
-  printf_unfiltered (_("open_source_file\n"));
+  if (fetch_source (s->objfile->obfd, s->filename, cachefile, sizeof(cachefile)) == 0)
+    {
+      result = gdb_open_cloexec (cachefile, OPEN_MODE, 0);
+      if (result >= 0)
+        {
+          char *lpath = gdb_realpath (cachefile);
 
-  fetch_source (s->objfile->obfd, s->filename);
+          s->fullname = lpath;
+          return result;
+        }
+    }
 
   return find_and_open_source (s->filename, s->dirname, &s->fullname);
 }

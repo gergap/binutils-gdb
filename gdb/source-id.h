@@ -27,6 +27,7 @@ extern void _initialize_source_id (void);
  * filename from a source server. The source version is identified by
  * the source-id field.
  */
-extern int fetch_source (bfd *abfd, const char *filename);
+extern int fetch_source (bfd *abfd, const char *filename,
+    char *cachefile, size_t len);
 
 #endif /* SOURCE_ID_H */

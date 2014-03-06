@@ -65,14 +65,15 @@ version information."),
 }
 
 int
-fetch_source (bfd *abfd, const char *filename)
+fetch_source (bfd *abfd, const char *filename, char *cachefile, size_t len)
 {
     int ret;
     struct elf_obj_tdata *t;
     char command[PATH_MAX];
     const char *filehash = "hash"; /* TODO: add file hash */
+    FILE *f;
 
-    printf_unfiltered (_("fetch_source: %p %s\n"), abfd, filename);
+    /*printf_unfiltered (_("fetch_source: %p %s\n"), abfd, filename);*/
 
     /* return if now source-lookup hook was configured */
     if (source_lookup == NULL)
@@ -104,7 +105,22 @@ fetch_source (bfd *abfd, const char *filename)
       }
 
     /*printf_unfiltered("Calling system %s\n", command);*/
-    ret = system (command);
+    f = popen (command, "r");
+    if (f)
+      {
+        if (fgets(cachefile, len, f) != NULL)
+          {
+            char *tmp = strchr (cachefile, '\n');
+            if (tmp)
+              *tmp = 0;
+          }
+        else
+          {
+            cachefile[0] = 0;
+          }
+        ret = pclose(f); /* close stream and get exit code */
+      }
+
     if (ret != 0)
       {
         printf_unfiltered("fetching sources failed: system call result=%i, exitcode=%i\n",
