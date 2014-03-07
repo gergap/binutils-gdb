@@ -8775,24 +8775,54 @@ static bfd_boolean
 elfobj_grok_gnu_source_id (bfd *abfd, Elf_Internal_Note *note)
 {
   struct elf_obj_tdata *t;
-  int len1, len2;
+  unsigned int pos;
+  int len;
+  int state = 0; /* 0=parse vcs_type, 1=parse vcs_url, 2=parse vcs_version */
 
   if (note->descsz == 0)
     return FALSE;
 
   t = elf_tdata (abfd);
-  t->source_id = bfd_alloc (abfd, sizeof (*t->source_id) - 1 + note->descsz);
+  /* calculating the correct size of struct source_id excluding the data byte */
+  len = offsetof(struct elf_source_id, data);
+  t->source_id = bfd_alloc (abfd, len + note->descsz);
   if (t->source_id == NULL)
     return FALSE;
 
   memcpy (t->source_id->data, note->descdata, note->descsz);
   t->source_id->vcs_type = t->source_id->data;
-  len1 = strlen(t->source_id->vcs_type);
-  t->source_id->vcs_url  = &t->source_id->data[len1+1];
-  len2 = strlen(t->source_id->vcs_url);
-  t->source_id->vcs_version = &t->source_id->data[len1+len2+2];
+  state++;
+  pos = 0;
+  while (pos < note->descsz)
+    {
+      if (t->source_id->data[pos] == 0)
+        {
+          switch (state)
+            {
+              case 1:
+                pos++;
+                t->source_id->vcs_url = &t->source_id->data[pos];
+                state++;
+                break;
+              case 2:
+                pos++;
+                t->source_id->vcs_version = &t->source_id->data[pos];
+                state++;
+                break;
+              case 3:
+                /* found last zero terminator, parsing complete */
+                return TRUE;
+              default:
+                goto error;
+            }
+        }
+      ++pos;
+    }
 
-  return TRUE;
+error:
+  bfd_release(abfd, t->source_id);
+  t->source_id = NULL;
+  return FALSE;
 }
 
 static bfd_boolean
