@@ -89,8 +89,6 @@ fetch_source (bfd *abfd, const char *filename, char *cachefile, size_t len)
     const char *filehash = "hash"; /* TODO: add file hash */
     FILE *f;
 
-    /*printf_unfiltered (_("fetch_source: %p %s\n"), abfd, filename);*/
-
     /* return if now source-lookup hook was configured */
     if (source_lookup == NULL)
       return 0;
@@ -100,13 +98,6 @@ fetch_source (bfd *abfd, const char *filename, char *cachefile, size_t len)
     if (t->source_id == NULL)
       return 0;
 
-    /*
-    printf_unfiltered (_("source_id: %s %s %s\n"),
-        t->source_id->vcs_type,
-        t->source_id->vcs_url,
-        t->source_id->vcs_version
-    );
-     */
     ret = snprintf (command, PATH_MAX, "%s %s %s %s %s %s",
         source_lookup,
         t->source_id->vcs_type,
@@ -120,7 +111,6 @@ fetch_source (bfd *abfd, const char *filename, char *cachefile, size_t len)
         return -1;
       }
 
-    /*printf_unfiltered("Calling system %s\n", command);*/
     f = popen (command, "r");
     if (f)
       {
